@@ -10,9 +10,9 @@ ret_typ = { ("->" ~ id)? }
 
 body = { "{" ~ stmt_list ~ "}" }
 
-var_decl  = { id ~ ":" ~ id }
+param  = { id ~ ":" ~ id }
 
-param_list = { var_decl ~ ("," ~ var_decl)* }
+param_list = { param ~ ("," ~ param)* }
 
 stmt_list = { stmt* }
 

@@ -1,7 +1,9 @@
+#[derive(Default)]
 pub struct Program {
     pub functions: Vec<FnDecl>,
 }
 
+#[derive(Default)]
 pub struct FnDecl {
     pub name: String,
     pub params: Vec<FnParam>,
@@ -9,6 +11,7 @@ pub struct FnDecl {
     pub body: Vec<Stmt>
 }
 
+#[derive(Default)]
 pub struct FnParam {
     pub typ: String,
     pub name: String,
