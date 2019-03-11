@@ -1,0 +1,21 @@
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+
+program = { SOI ~ decl* ~ EOI }
+
+decl = { fn_decl }
+
+fn_decl = { "fn" ~ id ~ "(" ~ param_list? ~ ")" ~ ret_typ ~ body }
+
+ret_typ = { ("->" ~ id)? }
+
+body = { "{" ~ stmt_list ~ "}" }
+
+var_decl  = { id ~ ":" ~ id }
+
+param_list = { var_decl ~ ("," ~ var_decl)* }
+
+stmt_list = { stmt* }
+
+stmt = { "kek" }
+
+id = { ASCII_ALPHA+ }

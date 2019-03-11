@@ -1,0 +1,5 @@
+fn kek ( a: int, b: int, c: int ) -> int { }
+
+fn lol ( a: float) { }
+
+fn hehehe ( ) -> double { }
