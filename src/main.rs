@@ -15,8 +15,8 @@ use pest::iterators::Pair;
 
 fn parse_fn_param(decl: Pair<Rule>) -> ast::FnParam {
     let mut iter = decl.into_inner();
-    return ast::FnParam { typ: iter.next().unwrap().as_str().to_string(),
-                          name: iter.next().unwrap().as_str().to_string() }
+    return ast::FnParam { name: iter.next().unwrap().as_str().to_string(),
+                          typ: iter.next().unwrap().as_str().to_string() }
 }
 
 fn parse_fn_params(decl: Pair<Rule>) -> Vec<ast::FnParam> {
