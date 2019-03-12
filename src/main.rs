@@ -9,7 +9,7 @@ use std::fs;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
-pub struct CSVParser;
+pub struct JFECParser;
 
 use pest::iterators::Pair;
 
@@ -80,7 +80,7 @@ fn create_ast(program: Pair<Rule>) -> ast::Program {
 fn main() {
     let unparsed_file = fs::read_to_string("program.ce").expect("cannot read file");
 
-    let program = CSVParser::parse(Rule::program, &unparsed_file)
+    let program = JFECParser::parse(Rule::program, &unparsed_file)
         .expect("unsuccessful parse") // unwrap the parse result
         .next().unwrap(); // get and unwrap the `file` rule; never fails
 
