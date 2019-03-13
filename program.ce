@@ -1,4 +1,6 @@
-fn kek ( a: int, b: int, c: int ) -> int { }
+fn kek ( a: int, b: int, c: int ) -> int {
+    let a: int = f(f(x, y), z);
+}
 
 fn lol ( a: float) { }
 
