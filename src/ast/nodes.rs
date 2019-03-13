@@ -42,7 +42,7 @@ pub struct BlockStmt {
 #[derive(Debug)]
 pub enum Expr {
     Id(IdExpr),
-    Call(CallExpr)
+    Call(CallExpr),
 }
 
 #[derive(Debug)]
