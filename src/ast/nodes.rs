@@ -1,5 +1,3 @@
-use std::rc::Rc as Rc;
-
 #[derive(Debug)]
 pub struct Module {
     pub functions: Vec<FnDecl>
@@ -10,7 +8,7 @@ pub struct FnDecl {
     pub name: String,
     pub inputs: Vec<Arg>,
     pub output: String,
-    pub body: Rc<Stmt>,
+    pub body: Box<Stmt>,
 }
 
 #[derive(Debug)]
@@ -24,19 +22,19 @@ pub enum Stmt {
     Invalid,
     Assign(AssignStmt),
     Block(BlockStmt),
-    Expr(Rc<Expr>),
+    Expr(Box<Expr>),
 }
 
 #[derive(Debug)]
 pub struct AssignStmt {
     pub name: String,
     pub typ: String,
-    pub value: Rc<Expr>,
+    pub value: Box<Expr>,
 }
 
 #[derive(Debug)]
 pub struct BlockStmt {
-    pub list: Vec<Rc<Stmt>>,
+    pub list: Vec<Box<Stmt>>,
 }
 
 #[derive(Debug)]
@@ -53,5 +51,5 @@ pub struct IdExpr {
 #[derive(Debug)]
 pub struct CallExpr {
     pub name: String,
-    pub params: Vec<Rc<Expr>>,
+    pub params: Vec<Box<Expr>>,
 }

@@ -2,7 +2,6 @@ use pest::iterators::Pair;
 use pest::Parser;
 
 use std::fs;
-use std::rc::Rc as Rc;
 
 use crate::ast;
 
@@ -33,7 +32,7 @@ fn parse_args(args_p: Pair<Rule>) -> Vec<ast::Arg> {
     return res;
 }
 
-fn parse_call_params(call_params_p: Pair<Rule>) -> Vec<Rc<ast::Expr>> {
+fn parse_call_params(call_params_p: Pair<Rule>) -> Vec<Box<ast::Expr>> {
     let mut res = vec!();
     for p in call_params_p.into_inner() {
         match p.as_rule() {
@@ -46,7 +45,7 @@ fn parse_call_params(call_params_p: Pair<Rule>) -> Vec<Rc<ast::Expr>> {
     res
 }
 
-fn parse_call_expr(call_expr_p: Pair<Rule>) -> Rc<ast::Expr> {
+fn parse_call_expr(call_expr_p: Pair<Rule>) -> Box<ast::Expr> {
     let mut name = String::default();
     let mut params = vec!();
     for expr_p in call_expr_p.into_inner() {
@@ -60,14 +59,14 @@ fn parse_call_expr(call_expr_p: Pair<Rule>) -> Rc<ast::Expr> {
             _ => unreachable!()
         }
     }
-    Rc::new(ast::Expr::Call(ast::CallExpr { name, params }))
+    Box::new(ast::Expr::Call(ast::CallExpr { name, params }))
 }
 
-fn parse_expr(expr_p: Pair<Rule>) -> Rc<ast::Expr> {
+fn parse_expr(expr_p: Pair<Rule>) -> Box<ast::Expr> {
     let expr = utils::next_iter(expr_p);
     match expr.as_rule() {
         Rule::id => {
-            return Rc::new(
+            return Box::new(
                 ast::Expr::Id(ast::IdExpr { name: utils::to_string(expr) }));
         }
         Rule::call_expr => {
@@ -77,7 +76,7 @@ fn parse_expr(expr_p: Pair<Rule>) -> Rc<ast::Expr> {
     }
 }
 
-fn parse_stmt(stmt_p: Pair<Rule>) -> Rc<ast::Stmt> {
+fn parse_stmt(stmt_p: Pair<Rule>) -> Box<ast::Stmt> {
     let stmt = utils::next_iter(stmt_p);
     match stmt.as_rule() {
         Rule::assign_stmt => {
@@ -85,12 +84,12 @@ fn parse_stmt(stmt_p: Pair<Rule>) -> Rc<ast::Stmt> {
             let name = utils::next_string(&mut iter);
             let typ = utils::next_string(&mut iter);
             let val = iter.next().unwrap();
-            return Rc::new(ast::Stmt::Assign(
+            return Box::new(ast::Stmt::Assign(
                 ast::AssignStmt { name, typ, value: parse_expr(val) }
             ));
         }
         Rule::expr_stmt => {
-            return Rc::new(ast::Stmt::Expr(parse_expr(utils::next_iter(stmt))));
+            return Box::new(ast::Stmt::Expr(parse_expr(utils::next_iter(stmt))));
         }
         Rule::block_stmt => {
             return parse_block(stmt);
@@ -99,7 +98,7 @@ fn parse_stmt(stmt_p: Pair<Rule>) -> Rc<ast::Stmt> {
     }
 }
 
-fn parse_block(block_p: Pair<Rule>) -> Rc<ast::Stmt> {
+fn parse_block(block_p: Pair<Rule>) -> Box<ast::Stmt> {
     let mut list = vec!();
     for p in utils::next_iter(block_p).into_inner() {
         match p.as_rule() {
@@ -109,14 +108,14 @@ fn parse_block(block_p: Pair<Rule>) -> Rc<ast::Stmt> {
             _ => unreachable!(),
         }
     }
-    Rc::new(ast::Stmt::Block(ast::BlockStmt { list }))
+    Box::new(ast::Stmt::Block(ast::BlockStmt { list }))
 }
 
 fn parse_fn_decl(fndecl_p: Pair<Rule>) -> ast::FnDecl {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();
-    let mut body = Rc::new(ast::Stmt::Invalid);
+    let mut body = Box::new(ast::Stmt::Invalid);
 
     for p in fndecl_p.into_inner() {
         match p.as_rule() {
