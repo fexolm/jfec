@@ -147,14 +147,16 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
 
 pub fn create_ast(filename: &str) -> Result<ast::Module, io::Error> {
     let file = fs::read_to_string(filename)?;
-    let mut parsed = JFECParser::parse(Rule::program, &file)?;
+    let mut parsed = JFECParser::parse(Rule::program, &file).expect("parse error");
     let module = utils::get_next(&mut parsed)?;
 
     let mut fn_decls = vec!();
     for decl in module.into_inner() {
         match decl.as_rule() {
             Rule::decl => {
-                fn_decls.push(parse_fn_decl(decl.into_inner().next().unwrap()));
+                let next = utils::inner_next(decl)?;
+                let decl = parse_fn_decl(next)?;
+                fn_decls.push(decl);
             }
             Rule::EOI => (),
             _ => unreachable!(),
