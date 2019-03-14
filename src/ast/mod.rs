@@ -1,4 +1,4 @@
-pub use nodes::*;
+pub use self::nodes::*;
 
 mod nodes;
 

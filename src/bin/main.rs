@@ -1,12 +1,11 @@
-extern crate pest;
-#[macro_use]
-extern crate pest_derive;
-
-mod ast;
-mod parser;
+extern crate jfec;
+use jfec::{parser, ast};
+use std::fs;
 
 fn main() {
-    let ast = parser::create_ast("program.ce");
+    let file = fs::read_to_string("program.ce").expect("cannot read file");
+
+    let ast = parser::create_ast(&file);
 
     for f in ast.functions {
         println!("function: {}", f.name);
