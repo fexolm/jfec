@@ -1,6 +1,7 @@
 use pest::iterators::Pair;
 use pest::Parser;
 
+use std::io;
 use crate::ast;
 
 use super::utils;
@@ -9,41 +10,42 @@ use super::utils;
 #[grammar = "parser/grammar.pest"]
 struct JFECParser;
 
-fn parse_arg(arg_p: Pair<Rule>) -> ast::Arg {
+fn parse_arg(arg_p: Pair<Rule>) -> Result<ast::Arg, io::Error> {
     let mut iter = arg_p.into_inner();
-    return ast::Arg {
-        name: utils::next_string(&mut iter),
-        typ: utils::next_string(&mut iter),
-    };
+    let name = utils::next_string(&mut iter)?;
+    let typ = utils::next_string(&mut iter)?;
+    return Ok(ast::Arg { name, typ });
 }
 
-fn parse_args(args_p: Pair<Rule>) -> Vec<ast::Arg> {
+fn parse_args(args_p: Pair<Rule>) -> Result<Vec<ast::Arg>, io::Error> {
     let mut res = vec!();
     for p in args_p.into_inner() {
         match p.as_rule() {
             Rule::param => {
-                res.push(parse_arg(p));
+                let arg = parse_arg(p)?;
+                res.push(arg);
             }
             _ => unreachable!(),
         }
     }
-    return res;
+    return Ok(res);
 }
 
-fn parse_call_params(call_params_p: Pair<Rule>) -> Vec<Box<ast::Expr>> {
+fn parse_call_params(call_params_p: Pair<Rule>) -> Result<Vec<Box<ast::Expr>>, io::Error> {
     let mut res = vec!();
     for p in call_params_p.into_inner() {
         match p.as_rule() {
             Rule::expr => {
-                res.push(parse_expr(p));
+                let expr = parse_expr(p)?;
+                res.push(expr);
             }
             _ => unreachable!(),
         }
     }
-    res
+    Ok(res)
 }
 
-fn parse_call_expr(call_expr_p: Pair<Rule>) -> Box<ast::Expr> {
+fn parse_call_expr(call_expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
     let mut name = String::default();
     let mut params = vec!();
     for expr_p in call_expr_p.into_inner() {
@@ -52,20 +54,20 @@ fn parse_call_expr(call_expr_p: Pair<Rule>) -> Box<ast::Expr> {
                 name = utils::to_string(expr_p);
             }
             Rule::call_params => {
-                params = parse_call_params(expr_p);
+                params = parse_call_params(expr_p)?;
             }
             _ => unreachable!()
         }
     }
-    Box::new(ast::Expr::Call(ast::CallExpr { name, params }))
+    Ok(Box::new(ast::Expr::Call(ast::CallExpr { name, params })))
 }
 
-fn parse_expr(expr_p: Pair<Rule>) -> Box<ast::Expr> {
-    let expr = utils::next_iter(expr_p);
+fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
+    let expr = utils::inner_next(expr_p)?;
     match expr.as_rule() {
         Rule::id => {
-            return Box::new(
-                ast::Expr::Id(ast::IdExpr { name: utils::to_string(expr) }));
+            return Ok(Box::new(
+                ast::Expr::Id(ast::IdExpr { name: utils::to_string(expr) })));
         }
         Rule::call_expr => {
             return parse_call_expr(expr);
@@ -74,42 +76,48 @@ fn parse_expr(expr_p: Pair<Rule>) -> Box<ast::Expr> {
     }
 }
 
-fn parse_stmt(stmt_p: Pair<Rule>) -> Box<ast::Stmt> {
-    let stmt = utils::next_iter(stmt_p);
+fn parse_stmt(stmt_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
+    let stmt = utils::inner_next(stmt_p)?;
     match stmt.as_rule() {
         Rule::assign_stmt => {
             let mut iter = stmt.into_inner();
-            let name = utils::next_string(&mut iter);
-            let typ = utils::next_string(&mut iter);
-            let val = iter.next().unwrap();
-            return Box::new(ast::Stmt::Assign(
-                ast::AssignStmt { name, typ, value: parse_expr(val) }
-            ));
+            let name = utils::next_string(&mut iter)?;
+            let typ = utils::next_string(&mut iter)?;
+            let val = utils::get_next(&mut iter)?;
+            let value = parse_expr(val)?;
+            return Ok(Box::new(ast::Stmt::Assign(
+                ast::AssignStmt { name, typ, value }
+            )));
         }
         Rule::expr_stmt => {
-            return Box::new(ast::Stmt::Expr(parse_expr(utils::next_iter(stmt))));
+            let next = utils::inner_next(stmt)?;
+            let expr = parse_expr(next)?;
+            return Ok(Box::new(ast::Stmt::Expr(expr)));
         }
         Rule::block_stmt => {
-            return parse_block(stmt);
+            let block = parse_block(stmt)?;
+            return Ok(block);
         }
         _ => unreachable!(),
     }
 }
 
-fn parse_block(block_p: Pair<Rule>) -> Box<ast::Stmt> {
+fn parse_block(block_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
     let mut list = vec!();
-    for p in utils::next_iter(block_p).into_inner() {
+    let next = utils::inner_next(block_p)?;
+    for p in next.into_inner() {
         match p.as_rule() {
             Rule::stmt => {
-                list.push(parse_stmt(p));
+                let stmt = parse_stmt(p)?;
+                list.push(stmt);
             }
             _ => unreachable!(),
         }
     }
-    Box::new(ast::Stmt::Block(ast::BlockStmt { list }))
+    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list })))
 }
 
-fn parse_fn_decl(fndecl_p: Pair<Rule>) -> ast::FnDecl {
+fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();
@@ -121,33 +129,36 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> ast::FnDecl {
                 name = p.as_str().to_string();
             }
             Rule::param_list => {
-                inputs = parse_args(p);
+                inputs = parse_args(p)?;
             }
             Rule::ret_typ => {
-                output = utils::to_string(p)
+                output = utils::to_string(p);
             }
             Rule::block_stmt => {
-                body = parse_block(p);
+                body = parse_block(p)?;
             }
             _ => unreachable!(),
         }
     }
-    ast::FnDecl { name, inputs, output, body }
+    Ok(ast::FnDecl { name, inputs, output, body })
 }
 
-pub fn create_ast(text: &String) -> ast::Module {
-    let module = JFECParser::parse(Rule::program, &text)
-        .expect("unsuccessful parse").next().unwrap();
+
+pub fn create_ast(text: &String) -> Result<ast::Module, io::Error> {
+    let mut parsed = JFECParser::parse(Rule::program, &text).expect("parse error");
+    let module = utils::get_next(&mut parsed)?;
 
     let mut fn_decls = vec!();
     for decl in module.into_inner() {
         match decl.as_rule() {
             Rule::decl => {
-                fn_decls.push(parse_fn_decl(decl.into_inner().next().unwrap()));
+                let next = utils::inner_next(decl)?;
+                let decl = parse_fn_decl(next)?;
+                fn_decls.push(decl);
             }
             Rule::EOI => (),
             _ => unreachable!(),
         }
     }
-    ast::Module { functions: fn_decls }
+    Ok(ast::Module { functions: fn_decls })
 }

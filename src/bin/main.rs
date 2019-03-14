@@ -5,7 +5,7 @@ use std::fs;
 fn main() {
     let file = fs::read_to_string("program.ce").expect("cannot read file");
 
-    let ast = parser::create_ast(&file);
+    let ast = parser::create_ast(&file).expect("cannot create ast");
 
     for f in ast.functions {
         println!("function: {}", f.name);
