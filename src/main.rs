@@ -6,7 +6,7 @@ mod ast;
 mod parser;
 
 fn main() {
-    let ast = parser::create_ast("program.ce").expect("fail");
+    let ast = parser::create_ast("program.ce").expect("Fail parse ast");
 
     for f in ast.functions {
         println!("function: {}", f.name);

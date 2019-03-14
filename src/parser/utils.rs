@@ -14,7 +14,7 @@ pub fn get_next<'s, 't, R: RuleType>(p: &'s mut Pairs<'t, R>) -> Result<Pair<'t,
     if let Some(val) = p.next() {
         Ok(val)
     } else {
-        Err(io::Error::new(io::ErrorKind::InvalidInput, "kek"))
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "Fail to get next element"))
     }
 }
 
