@@ -6,7 +6,7 @@ mod ast;
 mod parser;
 
 fn main() {
-    let ast = parser::create_ast("program.ce");
+    let ast = parser::create_ast("program.ce").expect("zhopa");
 
     for f in ast.functions {
         println!("function: {}", f.name);
