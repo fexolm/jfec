@@ -1,7 +1,6 @@
 use pest::iterators::Pair;
 use pest::Parser;
 
-use std::fs;
 use std::io;
 use crate::ast;
 
@@ -145,9 +144,8 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
 }
 
 
-pub fn create_ast(filename: &str) -> Result<ast::Module, io::Error> {
-    let file = fs::read_to_string(filename)?;
-    let mut parsed = JFECParser::parse(Rule::program, &file).expect("parse error");
+pub fn create_ast(text: &String) -> Result<ast::Module, io::Error> {
+    let mut parsed = JFECParser::parse(Rule::program, &text).expect("parse error");
     let module = utils::get_next(&mut parsed)?;
 
     let mut fn_decls = vec!();

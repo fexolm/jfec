@@ -1,4 +1,4 @@
-pub use parser::*;
+pub use self::parser::*;
 
 mod parser;
 mod utils;
