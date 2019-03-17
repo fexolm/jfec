@@ -1,14 +1,16 @@
+use super::symbol_map::*;
+
 #[derive(Debug)]
-pub struct Module {
-    pub functions: Vec<FnDecl>
+pub struct Module<'a> {
+    pub functions: Vec<FnDecl<'a>>
 }
 
 #[derive(Debug)]
-pub struct FnDecl {
+pub struct FnDecl<'a> {
     pub name: String,
     pub inputs: Vec<Arg>,
     pub output: String,
-    pub body: Box<Stmt>,
+    pub body: Box<Stmt<'a>>,
 }
 
 #[derive(Debug)]
@@ -18,10 +20,10 @@ pub struct Arg {
 }
 
 #[derive(Debug)]
-pub enum Stmt {
+pub enum Stmt<'a> {
     Invalid,
     Assign(AssignStmt),
-    Block(BlockStmt),
+    Block(BlockStmt<'a>),
     Expr(Box<Expr>),
 }
 
@@ -33,8 +35,9 @@ pub struct AssignStmt {
 }
 
 #[derive(Debug)]
-pub struct BlockStmt {
-    pub list: Vec<Box<Stmt>>,
+pub struct BlockStmt<'a> {
+    pub list: Vec<Box<Stmt<'a>>>,
+    pub scope: Scope<'a>,
 }
 
 #[derive(Debug)]

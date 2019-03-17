@@ -104,6 +104,7 @@ fn parse_stmt(stmt_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
 
 fn parse_block(block_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
     let mut list = vec!();
+    let mut scope = ast::Scope::new();
     let next = utils::inner_next(block_p)?;
     for p in next.into_inner() {
         match p.as_rule() {
@@ -114,7 +115,7 @@ fn parse_block(block_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
             _ => unreachable!(),
         }
     }
-    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list })))
+    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list, scope})))
 }
 
 fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
