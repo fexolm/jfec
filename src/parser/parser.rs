@@ -1,7 +1,7 @@
 use pest::iterators::Pair;
 use pest::Parser;
-
 use std::io;
+
 use crate::ast;
 
 use super::utils;
@@ -76,7 +76,8 @@ fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
     }
 }
 
-fn parse_stmt(stmt_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
+fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
+              -> Result<Box<ast::Stmt>, io::Error> {
     let stmt = utils::inner_next(stmt_p)?;
     match stmt.as_rule() {
         Rule::assign_stmt => {
@@ -85,9 +86,14 @@ fn parse_stmt(stmt_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
             let typ = utils::next_string(&mut iter)?;
             let val = utils::get_next(&mut iter)?;
             let value = parse_expr(val)?;
-            return Ok(Box::new(ast::Stmt::Assign(
-                ast::AssignStmt { name, typ, value }
-            )));
+            if let Some(t) = scope.lookup(&typ) {
+                let scope_var = scope.add_symbol(&name, ast::Symbol::Variable { name: name.clone(), typ: t });
+                return Ok(Box::new(ast::Stmt::Assign(
+                    ast::AssignStmt { symbol: scope_var, value }
+                )));
+            } else {
+                return Err(io::Error::new(io::ErrorKind::InvalidInput, "Symbol not found"));
+            }
         }
         Rule::expr_stmt => {
             let next = utils::inner_next(stmt)?;
@@ -95,30 +101,31 @@ fn parse_stmt(stmt_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
             return Ok(Box::new(ast::Stmt::Expr(expr)));
         }
         Rule::block_stmt => {
-            let block = parse_block(stmt)?;
+            let block = parse_block(stmt, scope)?;
             return Ok(block);
         }
         _ => unreachable!(),
     }
 }
 
-fn parse_block(block_p: Pair<Rule>) -> Result<Box<ast::Stmt>, io::Error> {
+fn parse_block(block_p: Pair<Rule>, parent_scope: &mut ast::Scope) -> Result<Box<ast::Stmt>, io::Error> {
     let mut list = vec!();
     let mut scope = ast::Scope::new();
     let next = utils::inner_next(block_p)?;
     for p in next.into_inner() {
         match p.as_rule() {
             Rule::stmt => {
-                let stmt = parse_stmt(p)?;
+                let stmt = parse_stmt(p, &mut scope)?;
                 list.push(stmt);
             }
             _ => unreachable!(),
         }
     }
-    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list, scope})))
+    let s = parent_scope.add_scope(scope);
+    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list, scope: s })))
 }
 
-fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
+fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::FnDecl, io::Error> {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();
@@ -136,7 +143,7 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
                 output = utils::to_string(p);
             }
             Rule::block_stmt => {
-                body = parse_block(p)?;
+                body = parse_block(p, scope)?;
             }
             _ => unreachable!(),
         }
@@ -148,13 +155,13 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<ast::FnDecl, io::Error> {
 pub fn create_ast(text: &String) -> Result<ast::Module, io::Error> {
     let mut parsed = JFECParser::parse(Rule::program, &text).expect("parse error");
     let module = utils::get_next(&mut parsed)?;
-
+    let mut scope = ast::Scope::new();
     let mut fn_decls = vec!();
     for decl in module.into_inner() {
         match decl.as_rule() {
             Rule::decl => {
                 let next = utils::inner_next(decl)?;
-                let decl = parse_fn_decl(next)?;
+                let decl = parse_fn_decl(next, &mut scope)?;
                 fn_decls.push(decl);
             }
             Rule::EOI => (),

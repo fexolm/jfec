@@ -1,16 +1,17 @@
 use super::symbol_map::*;
+use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct Module<'a> {
-    pub functions: Vec<FnDecl<'a>>
+pub struct Module {
+    pub functions: Vec<FnDecl>
 }
 
 #[derive(Debug)]
-pub struct FnDecl<'a> {
+pub struct FnDecl {
     pub name: String,
     pub inputs: Vec<Arg>,
     pub output: String,
-    pub body: Box<Stmt<'a>>,
+    pub body: Box<Stmt>,
 }
 
 #[derive(Debug)]
@@ -20,24 +21,23 @@ pub struct Arg {
 }
 
 #[derive(Debug)]
-pub enum Stmt<'a> {
+pub enum Stmt {
     Invalid,
     Assign(AssignStmt),
-    Block(BlockStmt<'a>),
+    Block(BlockStmt),
     Expr(Box<Expr>),
 }
 
 #[derive(Debug)]
 pub struct AssignStmt {
-    pub name: String,
-    pub typ: String,
+    pub symbol: Rc<Symbol>,
     pub value: Box<Expr>,
 }
 
 #[derive(Debug)]
-pub struct BlockStmt<'a> {
-    pub list: Vec<Box<Stmt<'a>>>,
-    pub scope: Scope<'a>,
+pub struct BlockStmt {
+    pub list: Vec<Box<Stmt>>,
+    pub scope: Rc<Scope>,
 }
 
 #[derive(Debug)]
