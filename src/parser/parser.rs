@@ -130,7 +130,6 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
     let mut inputs = vec!();
     let mut output = String::default();
     let mut body = Box::new(ast::Stmt::Invalid);
-
     for p in fndecl_p.into_inner() {
         match p.as_rule() {
             Rule::id => {
@@ -143,6 +142,7 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
                 output = utils::to_string(p);
             }
             Rule::block_stmt => {
+                // TODO: add function parameters to function scope
                 body = parse_block(p, scope)?;
             }
             _ => unreachable!(),

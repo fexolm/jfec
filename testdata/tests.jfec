@@ -1,0 +1,10 @@
+fn bar ( a: int, b: int, c: int ) -> int {
+    let c: int = f(f(a, b), c);
+    {
+        let foo: float = f(a,b);
+    }
+}
+
+fn lol ( a: float) { }
+
+fn hehehe ( ) -> double { }
