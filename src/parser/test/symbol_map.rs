@@ -16,7 +16,7 @@ fn test_symbol_map() {
             if let ast::Stmt::Block(ref block) = *f.body {
                 match block.scope.lookup(&"c".to_string()) {
                     Some(sym) => {
-                        if let ast::Symbol::Variable {ref name, ref typ} = *sym {
+                        if let ast::Symbol::Variable {ref name, typ: _} = *sym {
                             assert_eq!(name, &"c".to_string());
                         } else {
                             unreachable!()

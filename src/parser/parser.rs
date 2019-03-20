@@ -130,6 +130,7 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
     let mut inputs = vec!();
     let mut output = String::default();
     let mut body = Box::new(ast::Stmt::Invalid);
+    let mut fn_scope = ast::Scope::new();
     for p in fndecl_p.into_inner() {
         match p.as_rule() {
             Rule::id => {
@@ -137,17 +138,27 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
             }
             Rule::param_list => {
                 inputs = parse_args(p)?;
+                for i in &inputs {
+                    let typ = if let Some(typ) = scope.lookup(&i.typ) {
+                        typ
+                    } else {
+                        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Symbol not found"));
+                    };
+                    let name = &i.name;
+                    fn_scope.add_symbol(name, ast::Symbol::Variable{name: name.clone(), typ});
+                }
             }
             Rule::ret_typ => {
                 output = utils::to_string(p);
             }
             Rule::block_stmt => {
                 // TODO: add function parameters to function scope
-                body = parse_block(p, scope)?;
+                body = parse_block(p, &mut fn_scope)?;
             }
             _ => unreachable!(),
         }
     }
+    scope.add_scope(fn_scope);
     Ok(ast::FnDecl { name, inputs, output, body })
 }
 
