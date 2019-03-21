@@ -3,8 +3,10 @@ use pest::Parser;
 use std::io;
 
 use crate::ast;
+use crate::ast::utils::ScopeExtensions;
 
 use super::utils;
+
 
 #[derive(Parser)]
 #[grammar = "parser/grammar.pest"]
@@ -86,14 +88,11 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
             let typ = utils::next_string(&mut iter)?;
             let val = utils::get_next(&mut iter)?;
             let value = parse_expr(val)?;
-            if let Some(t) = scope.lookup(&typ) {
-                let scope_var = scope.add_symbol(&name, ast::Symbol::Variable { name: name.clone(), typ: t });
-                return Ok(Box::new(ast::Stmt::Assign(
-                    ast::AssignStmt { symbol: scope_var, value }
-                )));
-            } else {
-                return Err(io::Error::new(io::ErrorKind::InvalidInput, "Symbol not found"));
-            }
+            let t = scope.try_lookup(&typ)?;
+            let scope_var = scope.add_symbol(&name, ast::Symbol::Variable { name: name.clone(), typ: t });
+            return Ok(Box::new(ast::Stmt::Assign(
+                ast::AssignStmt { symbol: scope_var, value }
+            )));
         }
         Rule::expr_stmt => {
             let next = utils::inner_next(stmt)?;
@@ -139,11 +138,7 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
             Rule::param_list => {
                 inputs = parse_args(p)?;
                 for i in &inputs {
-                    let typ = if let Some(typ) = scope.lookup(&i.typ) {
-                        typ
-                    } else {
-                        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Symbol not found"));
-                    };
+                    let typ = scope.try_lookup(&i.typ)?;
                     let name = &i.name;
                     fn_scope.add_symbol(name, ast::Symbol::Variable{name: name.clone(), typ});
                 }
@@ -152,7 +147,6 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
                 output = utils::to_string(p);
             }
             Rule::block_stmt => {
-                // TODO: add function parameters to function scope
                 body = parse_block(p, &mut fn_scope)?;
             }
             _ => unreachable!(),
