@@ -1,13 +1,31 @@
 use std::collections::HashMap;
 use std::rc::Rc;
+
+pub type Typ = String;
+
 #[derive(Debug)]
-pub enum Symbol {
-    Function { name: String, params: Vec<Rc<Symbol>>, ret: Rc<Symbol> },
-    Variable { name: String, typ: Rc<Symbol>},
-    Typ (String),
+pub struct Variable {
+    pub name: String,
+    pub typ: Rc<Symbol>,
 }
 
 #[derive(Debug)]
+pub enum Symbol {
+    Variable(Variable),
+    Typ(Typ),
+}
+
+impl Symbol {
+    pub fn new_var(name: String, typ: Rc<Symbol>) -> Self {
+        Symbol::Variable(Variable { name, typ })
+    }
+
+    pub fn new_typ(name: String) -> Self {
+        Symbol::Typ(name)
+    }
+}
+
+#[derive(Debug, Default)]
 pub struct Scope {
     scopes: Vec<Rc<Scope>>,
     symbols: HashMap<String, Rc<Symbol>>,

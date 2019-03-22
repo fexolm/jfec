@@ -3,10 +3,9 @@ use pest::Parser;
 use std::io;
 
 use crate::ast;
-use crate::ast::utils::ScopeExtensions;
+use crate::ast::helpers::ScopeExtensions;
 
 use super::utils;
-
 
 #[derive(Parser)]
 #[grammar = "parser/grammar.pest"]
@@ -89,7 +88,7 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
             let val = utils::get_next(&mut iter)?;
             let value = parse_expr(val)?;
             let t = scope.try_lookup(&typ)?;
-            let scope_var = scope.add_symbol(&name, ast::Symbol::Variable { name: name.clone(), typ: t });
+            let scope_var = scope.add_symbol(&name, ast::Symbol::new_var(name.clone(), t));
             return Ok(Box::new(ast::Stmt::Assign(
                 ast::AssignStmt { symbol: scope_var, value }
             )));
@@ -101,13 +100,13 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
         }
         Rule::block_stmt => {
             let block = parse_block(stmt, scope)?;
-            return Ok(block);
+            return Ok(Box::new(ast::Stmt::Block(block)));
         }
         _ => unreachable!(),
     }
 }
 
-fn parse_block(block_p: Pair<Rule>, parent_scope: &mut ast::Scope) -> Result<Box<ast::Stmt>, io::Error> {
+fn parse_block(block_p: Pair<Rule>, parent_scope: &mut ast::Scope) -> Result<ast::BlockStmt, io::Error> {
     let mut list = vec!();
     let mut scope = ast::Scope::new();
     let next = utils::inner_next(block_p)?;
@@ -121,14 +120,14 @@ fn parse_block(block_p: Pair<Rule>, parent_scope: &mut ast::Scope) -> Result<Box
         }
     }
     let s = parent_scope.add_scope(scope);
-    Ok(Box::new(ast::Stmt::Block(ast::BlockStmt { list, scope: s })))
+    Ok(ast::BlockStmt { list, scope: s })
 }
 
 fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::FnDecl, io::Error> {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();
-    let mut body = Box::new(ast::Stmt::Invalid);
+    let mut body = ast::BlockStmt::default();
     let mut fn_scope = ast::Scope::new();
     for p in fndecl_p.into_inner() {
         match p.as_rule() {
@@ -140,7 +139,7 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
                 for i in &inputs {
                     let typ = scope.try_lookup(&i.typ)?;
                     let name = &i.name;
-                    fn_scope.add_symbol(name, ast::Symbol::Variable{name: name.clone(), typ});
+                    fn_scope.add_symbol(name, ast::Symbol::new_var(name.clone(), typ));
                 }
             }
             Rule::ret_typ => {
@@ -155,7 +154,6 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
     scope.add_scope(fn_scope);
     Ok(ast::FnDecl { name, inputs, output, body })
 }
-
 
 pub fn create_ast(text: &String) -> Result<ast::Module, io::Error> {
     let mut parsed = JFECParser::parse(Rule::program, &text).expect("parse error");

@@ -1,29 +1,20 @@
-use crate::parser;
-use crate::ast;
 use std::fs;
+
+use crate::ast;
+use crate::ast::helpers::*;
+use crate::parser;
 
 #[test]
 fn test_symbol_map() {
     let file = fs::read_to_string("testdata/tests.jfec").expect("cannot read file");
-    let ast = if let Ok(ast) = parser::create_ast(&file) {
-        ast
-    } else {
-        unreachable!()
-    };
+    let ast = parser::create_ast(&file).unwrap();
 
     for f in ast.functions {
         if f.name == "bar" {
-            if let ast::Stmt::Block(ref block) = *f.body {
-                match block.scope.lookup(&"c".to_string()) {
-                    Some(sym) => {
-                        if let ast::Symbol::Variable {ref name, typ: _} = *sym {
-                            assert_eq!(name, &"c".to_string());
-                        } else {
-                            unreachable!()
-                        }
-                    }
-                    _ => unreachable!()
-                }
+            let block = &f.body;
+            let sym = block.scope.try_lookup(&"c".to_string()).unwrap();
+            if let ast::Symbol::Variable(ref var) = *sym {
+                assert_eq!(var.name, "c".to_string());
             } else {
                 unreachable!()
             }

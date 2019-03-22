@@ -1,6 +1,7 @@
 use pest::iterators::{Pair, Pairs};
 use pest::RuleType;
 use std::io;
+
 pub fn to_string<R: RuleType>(p: Pair<R>) -> String {
     p.as_str().to_string()
 }

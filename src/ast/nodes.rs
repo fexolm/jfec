@@ -1,5 +1,6 @@
-use super::symbol_map::*;
 use std::rc::Rc;
+
+use super::symbol_map::*;
 
 #[derive(Debug)]
 pub struct Module {
@@ -11,7 +12,7 @@ pub struct FnDecl {
     pub name: String,
     pub inputs: Vec<Arg>,
     pub output: String,
-    pub body: Box<Stmt>,
+    pub body: BlockStmt,
 }
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ pub struct AssignStmt {
     pub value: Box<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct BlockStmt {
     pub list: Vec<Box<Stmt>>,
     pub scope: Rc<Scope>,

@@ -1,5 +1,6 @@
 extern crate jfec;
-use jfec::{parser, ast};
+
+use jfec::parser;
 use std::fs;
 
 fn main() -> Result<(), Box<dyn std::error::Error>>{
@@ -13,12 +14,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>>{
             println!("type: {}, name: {}", p.typ, p.name);
         }
 
-        if let ast::Stmt::Block(ref block) = *f.body {
-            for stmt in &block.list {
-                println!("{:?}", stmt)
-            }
-        } else {
-            println!("error");
+        for stmt in &f.body.list {
+            println!("{:?}", stmt)
         }
     }
     Ok(())
