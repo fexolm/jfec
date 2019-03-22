@@ -2,8 +2,8 @@ use pest::iterators::Pair;
 use pest::Parser;
 use std::io;
 
-use crate::ast;
-use crate::ast::helpers::ScopeExtensions;
+use super::ast;
+use super::ast::helpers::ScopeExtensions;
 
 use super::utils;
 

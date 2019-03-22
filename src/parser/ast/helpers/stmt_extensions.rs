@@ -1,6 +1,6 @@
 use std::io::{Error, ErrorKind};
 
-use crate::ast;
+use super::ast;
 
 pub trait StmtExtensions {
     fn as_assign(&self) -> Result<&ast::AssignStmt, Error>;

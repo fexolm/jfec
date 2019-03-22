@@ -1,7 +1,7 @@
 use std::io::{Error, ErrorKind};
 use std::rc::Rc;
 
-use crate::ast;
+use super::ast;
 
 pub trait ScopeExtensions {
     fn try_lookup(&self, s: &String) -> Result<Rc<ast::Symbol>, Error>;
