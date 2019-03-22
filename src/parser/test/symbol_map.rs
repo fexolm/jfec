@@ -1,9 +1,7 @@
 use std::fs;
 
-use crate::ast;
-use crate::ast::helpers::*;
-use crate::parser;
-
+use super::parser;
+use super::helpers;
 #[test]
 fn test_symbol_map() {
     let file = fs::read_to_string("testdata/tests.jfec").expect("cannot read file");
@@ -11,13 +9,9 @@ fn test_symbol_map() {
 
     for f in ast.functions {
         if f.name == "bar" {
-            let block = &f.body;
-            let sym = block.scope.try_lookup(&"c".to_string()).unwrap();
-            if let ast::Symbol::Variable(ref var) = *sym {
-                assert_eq!(var.name, "c".to_string());
-            } else {
-                unreachable!()
-            }
+            let scope = &f.body.scope;
+            assert!(helpers::expect_var("c", &scope));
+            assert!(helpers::expect_var("a", &scope));
         }
     }
 }
