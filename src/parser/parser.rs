@@ -1,10 +1,11 @@
+use indextree::{Arena, NodeId};
 use pest::iterators::Pair;
 use pest::Parser;
 use std::io;
 
 use super::ast;
 use super::ast::helpers::ScopeExtensions;
-
+use super::ast::ScopeNode;
 use super::utils;
 
 #[derive(Parser)]
@@ -77,7 +78,7 @@ fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
     }
 }
 
-fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
+fn parse_stmt(stmt_p: Pair<Rule>, scope: NodeId, arena: &mut Arena<ast::Scope>)
               -> Result<Box<ast::Stmt>, io::Error> {
     let stmt = utils::inner_next(stmt_p)?;
     match stmt.as_rule() {
@@ -87,8 +88,8 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
             let typ = utils::next_string(&mut iter)?;
             let val = utils::get_next(&mut iter)?;
             let value = parse_expr(val)?;
-            let t = scope.try_lookup(&typ)?;
-            let scope_var = scope.add_symbol(&name, ast::Symbol::new_var(name.clone(), t));
+            let t = scope.try_lookup(&typ, arena)?;
+            let scope_var = scope.add_symbol(&name, ast::Symbol::new_var(name.clone(), t), arena);
             return Ok(Box::new(ast::Stmt::Assign(
                 ast::AssignStmt { symbol: scope_var, value }
             )));
@@ -99,36 +100,35 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: &mut ast::Scope)
             return Ok(Box::new(ast::Stmt::Expr(expr)));
         }
         Rule::block_stmt => {
-            let block = parse_block(stmt, scope)?;
+            let block = parse_block(stmt, scope, arena)?;
             return Ok(Box::new(ast::Stmt::Block(block)));
         }
         _ => unreachable!(),
     }
 }
 
-fn parse_block(block_p: Pair<Rule>, parent_scope: &mut ast::Scope) -> Result<ast::BlockStmt, io::Error> {
+fn parse_block(block_p: Pair<Rule>, parent_scope: NodeId, arena: &mut Arena<ast::Scope>) -> Result<ast::BlockStmt, io::Error> {
     let mut list = vec!();
-    let mut scope = ast::Scope::new();
+    let scope = parent_scope.add_child(arena);
     let next = utils::inner_next(block_p)?;
     for p in next.into_inner() {
         match p.as_rule() {
             Rule::stmt => {
-                let stmt = parse_stmt(p, &mut scope)?;
+                let stmt = parse_stmt(p, scope, arena)?;
                 list.push(stmt);
             }
             _ => unreachable!(),
         }
     }
-    let s = parent_scope.add_scope(scope);
-    Ok(ast::BlockStmt { list, scope: s })
+    Ok(ast::BlockStmt { list, scope })
 }
 
-fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::FnDecl, io::Error> {
+fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: NodeId, arena: &mut Arena<ast::Scope>) -> Result<ast::FnDecl, io::Error> {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();
     let mut body = ast::BlockStmt::default();
-    let mut fn_scope = ast::Scope::new();
+    let fn_scope = scope.add_child(arena);
     for p in fndecl_p.into_inner() {
         match p.as_rule() {
             Rule::id => {
@@ -137,39 +137,45 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: &mut ast::Scope) -> Result<ast::Fn
             Rule::param_list => {
                 inputs = parse_args(p)?;
                 for i in &inputs {
-                    let typ = scope.try_lookup(&i.typ)?;
+                    let typ = scope.try_lookup(&i.typ, arena)?;
                     let name = &i.name;
-                    fn_scope.add_symbol(name, ast::Symbol::new_var(name.clone(), typ));
+                    fn_scope.add_symbol(name, ast::Symbol::new_var(name.clone(), typ), arena);
                 }
             }
             Rule::ret_typ => {
                 output = utils::to_string(p);
             }
             Rule::block_stmt => {
-                body = parse_block(p, &mut fn_scope)?;
+                body = parse_block(p, fn_scope, arena)?;
             }
             _ => unreachable!(),
         }
     }
-    scope.add_scope(fn_scope);
     Ok(ast::FnDecl { name, inputs, output, body })
 }
 
 pub fn create_ast(text: &String) -> Result<ast::Module, io::Error> {
+    let mut arena = Arena::new();
     let mut parsed = JFECParser::parse(Rule::program, &text).expect("parse error");
     let module = utils::get_next(&mut parsed)?;
-    let mut scope = ast::Scope::new();
+    let scope = ast::Scope::new(&mut arena);
+    init_types(scope, &mut arena);
     let mut fn_decls = vec!();
     for decl in module.into_inner() {
         match decl.as_rule() {
             Rule::decl => {
                 let next = utils::inner_next(decl)?;
-                let decl = parse_fn_decl(next, &mut scope)?;
+                let decl = parse_fn_decl(next, scope, &mut arena)?;
                 fn_decls.push(decl);
             }
             Rule::EOI => (),
             _ => unreachable!(),
         }
     }
-    Ok(ast::Module { functions: fn_decls })
+    Ok(ast::Module { functions: fn_decls, arena })
+}
+
+fn init_types(scope: NodeId, arena: &mut Arena<ast::Scope>) {
+    scope.add_symbol(&"int".to_string(), ast::Symbol::Typ("int".to_string()), arena);
+    scope.add_symbol(&"float".to_string(), ast::Symbol::Typ("float".to_string()), arena);
 }

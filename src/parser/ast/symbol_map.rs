@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::rc::Rc;
+use indextree::{Arena, NodeId};
 
 pub type Typ = String;
 
@@ -27,40 +28,45 @@ impl Symbol {
 
 #[derive(Debug, Default)]
 pub struct Scope {
-    scopes: Vec<Rc<Scope>>,
     symbols: HashMap<String, Rc<Symbol>>,
-    parent: Option<Rc<Scope>>,
 }
 
 impl Scope {
-    pub fn new() -> Self {
-        let mut s = Scope {scopes: vec!(), symbols: HashMap::new(), parent: None };
-        s.init_types();
-        return s;
+    pub fn new(arena: &mut Arena<Scope>) -> NodeId {
+        arena.new_node(Scope::default())
+    }
+}
+
+pub trait ScopeNode {
+    fn add_child(self, arena: &mut Arena<Scope>) -> NodeId;
+
+    fn add_symbol(self, s: &String, sy: Symbol, arena: &mut Arena<Scope>) -> Rc<Symbol>;
+
+    fn lookup(self, s: &String, arena: &Arena<Scope>) -> Option<Rc<Symbol>>;
+}
+
+impl ScopeNode for NodeId {
+    fn add_child(self, arena: &mut Arena<Scope>) -> NodeId{
+        let id = arena.new_node(Scope::default());
+        self.append(id, arena).expect("Compiler exception. Failed to create new node.");
+        id
     }
 
-    pub fn add_scope(&mut self, s: Scope)-> Rc<Scope> {
-        self.scopes.push(Rc::new(s));
-        return self.scopes.last().cloned().unwrap();
+    fn add_symbol(self, s: &String, sy: Symbol, arena: &mut Arena<Scope>) -> Rc<Symbol> {
+        let scope = &mut arena.get_mut(self).unwrap().data;
+        scope.symbols.insert(s.clone(), Rc::new(sy));
+        return scope.symbols[s].clone();
     }
 
-    pub fn add_symbol(&mut self, s: &String, sy: Symbol) -> Rc<Symbol>{
-        self.symbols.insert(s.clone(), Rc::new(sy));
-        return self.symbols[s].clone();
-    }
+    fn lookup(self, s: &String, arena: &Arena<Scope>) -> Option<Rc<Symbol>> {
+        let node = arena.get(self).unwrap();
 
-    pub fn lookup(&self, s: &String) -> Option<Rc<Symbol>> {
-        if self.symbols.contains_key(s) {
-            return Some(self.symbols[s].clone());
-        } else if let Some(ref parent) = &self.parent {
-            return parent.lookup(s);
+        if node.data.symbols.contains_key(s) {
+            return Some(node.data.symbols[s].clone());
+        } else if let Some(ref parent) = node.parent() {
+            return parent.lookup(s, arena);
         } else {
             return None;
         }
-    }
-
-    fn init_types(&mut self) {
-        self.add_symbol(&"int".to_string(), Symbol::Typ("int".to_string()));
-        self.add_symbol(&"float".to_string(), Symbol::Typ("float".to_string()));
     }
 }

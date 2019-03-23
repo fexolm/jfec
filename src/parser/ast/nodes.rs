@@ -1,10 +1,13 @@
+use indextree::{NodeId, Arena};
+
 use std::rc::Rc;
 
 use super::symbol_map::*;
 
 #[derive(Debug)]
 pub struct Module {
-    pub functions: Vec<FnDecl>
+    pub functions: Vec<FnDecl>,
+    pub arena: Arena<Scope>,
 }
 
 #[derive(Debug)]
@@ -35,10 +38,16 @@ pub struct AssignStmt {
     pub value: Box<Expr>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct BlockStmt {
     pub list: Vec<Box<Stmt>>,
-    pub scope: Rc<Scope>,
+    pub scope: NodeId,
+}
+
+impl Default for BlockStmt {
+    fn default() -> Self {
+        BlockStmt {list: Vec::default(), scope: NodeId::new(0) }
+    }
 }
 
 #[derive(Debug)]
