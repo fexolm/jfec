@@ -1,12 +1,13 @@
 use std::fs;
 
+use super::ast::helpers::StmtExtensions;
 use super::helpers;
 use super::parser;
-use super::ast::helpers::StmtExtensions;
 
 #[test]
-fn test_symbol_map() {
-    let file = fs::read_to_string("testdata/tests.jfec").expect("cannot read file");
+fn test1() {
+    let file = fs::read_to_string("testdata/parser/symbol_map/test1.jfec")
+        .expect("cannot read file");
     let ast = parser::create_ast(&file).unwrap();
     let arena = ast.arena;
     for f in ast.functions {

@@ -1,7 +1,8 @@
+use indextree::{Arena, NodeId};
 use std::io::{Error, ErrorKind};
 use std::rc::Rc;
-use indextree::{Arena, NodeId};
-use super::ast::{Scope, Symbol, ScopeNode};
+
+use super::ast::{Scope, ScopeNode, Symbol};
 
 pub trait ScopeExtensions {
     fn try_lookup(self, s: &String, arena: &Arena<Scope>) -> Result<Rc<Symbol>, Error>;

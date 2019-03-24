@@ -1,5 +1,4 @@
-use indextree::{NodeId, Arena};
-
+use indextree::{Arena, NodeId};
 use std::rc::Rc;
 
 use super::symbol_map::*;

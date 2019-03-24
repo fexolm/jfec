@@ -107,7 +107,10 @@ fn parse_stmt(stmt_p: Pair<Rule>, scope: NodeId, arena: &mut Arena<ast::Scope>)
     }
 }
 
-fn parse_block(block_p: Pair<Rule>, parent_scope: NodeId, arena: &mut Arena<ast::Scope>) -> Result<ast::BlockStmt, io::Error> {
+fn parse_block(block_p: Pair<Rule>,
+               parent_scope: NodeId,
+               arena: &mut Arena<ast::Scope>)
+               -> Result<ast::BlockStmt, io::Error> {
     let mut list = vec!();
     let scope = parent_scope.add_child(arena);
     let next = utils::inner_next(block_p)?;
@@ -123,7 +126,10 @@ fn parse_block(block_p: Pair<Rule>, parent_scope: NodeId, arena: &mut Arena<ast:
     Ok(ast::BlockStmt { list, scope })
 }
 
-fn parse_fn_decl(fndecl_p: Pair<Rule>, scope: NodeId, arena: &mut Arena<ast::Scope>) -> Result<ast::FnDecl, io::Error> {
+fn parse_fn_decl(fndecl_p: Pair<Rule>,
+                 scope: NodeId,
+                 arena: &mut Arena<ast::Scope>)
+                 -> Result<ast::FnDecl, io::Error> {
     let mut name = String::default();
     let mut inputs = vec!();
     let mut output = String::default();

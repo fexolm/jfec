@@ -1,6 +1,6 @@
+use indextree::{Arena, NodeId};
 use std::collections::HashMap;
 use std::rc::Rc;
-use indextree::{Arena, NodeId};
 
 pub type Typ = String;
 
