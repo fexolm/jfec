@@ -1,22 +1,43 @@
 extern crate jfec;
 
 use jfec::parser;
+use jfec::parser::ast;
+use jfec::parser::ast::visitor::{*};
 use std::fs;
+
+struct DebugVisitor;
+
+impl<'ast> Visitor<'ast> for DebugVisitor {
+    fn visit_fn_decl(&mut self, f: &'ast ast::FnDecl) {
+        println!("fn {}", f.name);
+        walk_fn_decl(self, f);
+        println!("endfn");
+    }
+    fn visit_stmt(&mut self, s: &'ast ast::Stmt) {
+        println!("statement {:?}", s);
+        walk_stmt(self, s);
+        println!("endstmt");
+    }
+    fn visit_expr(&mut self, e: &'ast ast::Expr) {
+        println!("expr {:?}", e);
+        walk_expr(self, e);
+        println!("endexpr");
+    }
+    fn visit_block(&mut self, b: &'ast ast::BlockStmt) {
+        println!("block");
+        walk_block(self, b);
+        println!("endblock");
+    }
+}
 
 fn main() -> Result<(), Box<dyn std::error::Error>>{
     let file = fs::read_to_string("program.ce").expect("cannot read file");
 
     let ast = parser::create_ast(&file).expect("cannot create ast");
 
-    for f in ast.functions {
-        println!("function: {}", f.name);
-        for p in f.inputs {
-            println!("type: {}, name: {}", p.typ, p.name);
-        }
+    let mut visitor = DebugVisitor {};
 
-        for stmt in &f.body.list {
-            println!("{:?}", stmt)
-        }
-    }
+    walk_mod(&mut visitor, &ast);
+
     Ok(())
 }

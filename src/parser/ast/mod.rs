@@ -5,3 +5,4 @@ mod nodes;
 mod symbol_map;
 
 pub mod helpers;
+pub mod visitor;

@@ -25,7 +25,6 @@ pub struct Arg {
 
 #[derive(Debug)]
 pub enum Stmt {
-    Invalid,
     Assign(AssignStmt),
     Block(BlockStmt),
     Expr(Box<Expr>),
