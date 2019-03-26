@@ -1,3 +1,5 @@
+use std::fmt::{Display,Formatter,Result};
+
 #[derive(Debug)]
 pub struct Module {
     pub items: Vec<Box<Item>>
@@ -28,7 +30,7 @@ pub struct FnDecl {
 #[derive(Debug)]
 pub struct Arg {
     pub typ: String,
-    pub name: String,
+    pub ident: String,
 }
 
 #[derive(Debug)]
@@ -68,6 +70,17 @@ pub struct Literal {
     pub kind: LiteralKind
 }
 
+impl Display for Literal {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match &self.kind {
+            LiteralKind::Str(ref val) => write!(f, "\"{}\"", val),
+            LiteralKind::Int(val) => write!(f, "{}", val),
+            LiteralKind::Float(val) => write!(f, "{}", val),
+            LiteralKind::Bool(val) => write!(f, "{}", val),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum LiteralKind {
     Str(String),
@@ -78,6 +91,6 @@ pub enum LiteralKind {
 
 #[derive(Debug)]
 pub struct Call {
-    pub func: Box<Expr>,
+    pub ident: String,
     pub params: Vec<Box<Expr>>,
 }

@@ -1,6 +1,5 @@
 use super::nodes::*;
 
-#[macro_export]
 macro_rules! walk_list {
     ($visitor: expr, $method: ident, $list: expr) => {
         for elem in $list {
@@ -30,8 +29,8 @@ pub fn walk_mod<'a, V: Visitor<'a>>(visitor: &mut V, module: &'a Module) {
 pub fn walk_item<'a, V: Visitor<'a>>(visitor: &mut V, item: &'a Item) {
     match item.kind {
         ItemKind::Fn(ref decl, ref block) => {
-            visitor.visit_block(&block);
             visitor.visit_fn_decl(&decl);
+            visitor.visit_block(&block);
         }
     }
 }

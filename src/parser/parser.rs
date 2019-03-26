@@ -13,7 +13,7 @@ fn parse_arg(arg_p: Pair<Rule>) -> Result<ast::Arg, io::Error> {
     let mut iter = arg_p.into_inner();
     let name = utils::next_string(&mut iter)?;
     let typ = utils::next_string(&mut iter)?;
-    return Ok(ast::Arg { name, typ });
+    return Ok(ast::Arg { ident: name, typ });
 }
 
 fn parse_args(args_p: Pair<Rule>) -> Result<Vec<Box<ast::Arg>>, io::Error> {
@@ -45,16 +45,13 @@ fn parse_call_params(call_params_p: Pair<Rule>) -> Result<Vec<Box<ast::Expr>>, i
 }
 
 fn parse_call_expr(call_expr_p: Pair<Rule>) -> Result<Box<ast::Call>, io::Error> {
-    let mut func = None;
+    let mut ident = String::default();
     let mut params = vec!();
     for expr_p in call_expr_p.into_inner() {
         match expr_p.as_rule() {
             // TODO: use any expr here (blocker is left recursion in grammar)
             Rule::ident => {
-                func = Some(Box::new(
-                    ast::Expr {
-                        kind: ast::ExprKind::Ident(utils::to_string(expr_p))
-                    }))
+                ident = utils::to_string(expr_p);
             }
             Rule::call_params => {
                 params = parse_call_params(expr_p)?;
@@ -62,12 +59,7 @@ fn parse_call_expr(call_expr_p: Pair<Rule>) -> Result<Box<ast::Call>, io::Error>
             _ => unreachable!()
         }
     }
-    match func {
-        Some(func) => Ok(Box::new(
-            ast::Call { func, params }
-        )),
-        _ => unreachable!()
-    }
+    Ok(Box::new(ast::Call { ident, params }))
 }
 
 fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {

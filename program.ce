@@ -1,7 +1,3 @@
-fn kek ( a: int, b: int, c: int ) -> int {
-    let a: int = f(f(x, y), z);
+fn foo ( a: int, b: int, c: int ) -> int {
+    let d: int = g(f(a, b), c);
 }
-
-fn lol ( a: float) { }
-
-fn hehehe ( ) -> double { }
