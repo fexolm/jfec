@@ -4,13 +4,13 @@ program = { SOI ~ decl* ~ EOI }
 
 decl = { fn_decl }
 
-fn_decl = { "fn" ~ id ~ "(" ~ param_list? ~ ")" ~ ret_typ ~ block_stmt }
+fn_decl = { "fn" ~ ident ~ "(" ~ param_list? ~ ")" ~ ret_typ ~ block_stmt }
 
-ret_typ = { ("->" ~ id)? }
+ret_typ = { ("->" ~ ident)? }
 
 block_stmt = { "{" ~ stmt_list ~ "}" }
 
-param  = { id ~ ":" ~ id }
+param  = { ident ~ ":" ~ ident }
 
 param_list = { param ~ ("," ~ param)* }
 
@@ -18,14 +18,14 @@ stmt_list = { stmt* }
 
 stmt = { assign_stmt | expr_stmt | block_stmt }
 
-assign_stmt = { "let" ~ id ~ ":" ~ id ~ "=" ~ expr ~ ";"}
+assign_stmt = { "let" ~ ident ~ ":" ~ ident ~ "=" ~ expr ~ ";"}
 
 expr_stmt = { expr ~ ";" }
 
-expr = { call_expr | id }
+expr = { call_expr | ident }
 
 call_params = { expr ~ ("," ~ expr)* }
 
-call_expr = { id ~ "(" ~ call_params? ~")" }
+call_expr = { ident ~ "(" ~ call_params? ~")" }
 
-id = @{ ASCII_ALPHA+ }
+ident = @{ ASCII_ALPHA+ }

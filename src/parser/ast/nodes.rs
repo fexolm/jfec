@@ -1,20 +1,28 @@
-use indextree::{Arena, NodeId};
-use std::rc::Rc;
-
-use super::symbol_map::*;
-
 #[derive(Debug)]
 pub struct Module {
-    pub functions: Vec<FnDecl>,
-    pub arena: Arena<Scope>,
+    pub items: Vec<Box<Item>>
+}
+
+#[derive(Debug)]
+pub struct Item {
+    pub ident: String,
+    pub kind: ItemKind,
+}
+
+#[derive(Debug)]
+pub enum ItemKind {
+    Fn(Box<FnDecl>, Box<Block>),
+}
+
+#[derive(Debug)]
+pub struct Stmt {
+    pub kind: StmtKind,
 }
 
 #[derive(Debug)]
 pub struct FnDecl {
-    pub name: String,
-    pub inputs: Vec<Arg>,
-    pub output: String,
-    pub body: BlockStmt,
+    pub inputs: Vec<Box<Arg>>,
+    pub output: Option<String>,
 }
 
 #[derive(Debug)]
@@ -24,43 +32,52 @@ pub struct Arg {
 }
 
 #[derive(Debug)]
-pub enum Stmt {
-    Assign(AssignStmt),
-    Block(BlockStmt),
+pub enum StmtKind {
+    Local(Box<Local>),
+    Item(Box<Item>),
+    Block(Block),
     Expr(Box<Expr>),
 }
 
 #[derive(Debug)]
-pub struct AssignStmt {
-    pub symbol: Rc<Symbol>,
+pub struct Local {
+    pub ident: String,
+    pub typ: String,
     pub value: Box<Expr>,
 }
 
-#[derive(Debug)]
-pub struct BlockStmt {
+#[derive(Debug, Default)]
+pub struct Block {
     pub list: Vec<Box<Stmt>>,
-    pub scope: NodeId,
-}
-
-impl Default for BlockStmt {
-    fn default() -> Self {
-        BlockStmt {list: Vec::default(), scope: NodeId::new(0) }
-    }
 }
 
 #[derive(Debug)]
-pub enum Expr {
-    Id(IdExpr),
-    Call(CallExpr),
+pub struct Expr {
+    pub kind: ExprKind,
 }
 
 #[derive(Debug)]
-pub struct IdExpr {
-    pub name: String
+pub enum ExprKind {
+    Ident(String),
+    Literal(Box<Literal>),
+    Call(Box<Call>),
 }
 
 #[derive(Debug)]
-pub struct CallExpr {
-    pub name: String,
+pub struct Literal {
+    pub kind: LiteralKind
+}
+
+#[derive(Debug)]
+pub enum LiteralKind {
+    Str(String),
+    Int(u64),
+    Float(f64),
+    Bool(bool),
+}
+
+#[derive(Debug)]
+pub struct Call {
+    pub func: Box<Expr>,
     pub params: Vec<Box<Expr>>,
 }

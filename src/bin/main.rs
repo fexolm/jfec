@@ -8,10 +8,10 @@ use std::fs;
 struct DebugVisitor;
 
 impl<'ast> Visitor<'ast> for DebugVisitor {
-    fn visit_fn_decl(&mut self, f: &'ast ast::FnDecl) {
-        println!("fn {}", f.name);
-        walk_fn_decl(self, f);
-        println!("endfn");
+    fn visit_item(&mut self, item: &'ast ast::Item) {
+        println!("item {}", item.ident);
+        walk_item(self, item);
+        println!("enditem");
     }
     fn visit_stmt(&mut self, s: &'ast ast::Stmt) {
         println!("statement {:?}", s);
@@ -23,7 +23,7 @@ impl<'ast> Visitor<'ast> for DebugVisitor {
         walk_expr(self, e);
         println!("endexpr");
     }
-    fn visit_block(&mut self, b: &'ast ast::BlockStmt) {
+    fn visit_block(&mut self, b: &'ast ast::Block) {
         println!("block");
         walk_block(self, b);
         println!("endblock");
