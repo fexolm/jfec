@@ -6,20 +6,6 @@ use jfec::parser::ast::visitor::{*};
 use std::collections::HashMap;
 use std::fs;
 
-#[macro_export]
-macro_rules! walk_list {
-    ($visitor: expr, $method: ident, $list: expr) => {
-        for elem in $list {
-            $visitor.$method(elem)
-        }
-    };
-    ($visitor: expr, $method: ident, $list: expr, $($extra_args: expr),*) => {
-        for elem in $list {
-            $visitor.$method(elem, $($extra_args,)*)
-        }
-    }
-}
-
 struct SSAVisitor {
     var_num: i32,
     tmp_num: i32,
