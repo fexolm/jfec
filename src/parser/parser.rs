@@ -150,11 +150,10 @@ fn parse_fn_decl(fndecl_p: Pair<Rule>) -> Result<Box<ast::Item>, io::Error> {
                 inputs = parse_args(p)?;
             }
             Rule::ret_typ => {
-                let s = utils::to_string(p);
-                output = if !s.is_empty() {
-                    Some(s)
-                } else {
-                    None
+                if let Ok(next) = utils::inner_next(p) {
+                    // TODO: don't cause error to handle case with empty return type
+                    let s = utils::to_string(next);
+                    output = Some(s);
                 }
             }
             Rule::block_stmt => {

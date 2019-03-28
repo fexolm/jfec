@@ -1,3 +1,11 @@
-fn foo ( a: int, b: int, c: int ) -> int {
+fn g(a: float, b: int) -> int {
+
+}
+
+fn f(a: int, b:float) -> float {
+    g(a, b);
+}
+
+fn foo ( a: int, b: float, c: int ) {
     let d: int = g(f(a, b), c);
 }

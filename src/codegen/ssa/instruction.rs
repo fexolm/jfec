@@ -1,4 +1,4 @@
-use indextree::NodeId;
+use std::fmt::{Display, Formatter, Result};
 
 pub struct Instruction {
     pub kind: InstructionKind
@@ -10,28 +10,54 @@ pub enum InstructionKind {
     Sub(Box<BinaryOp>),
     Mul(Box<BinaryOp>),
     Div(Box<BinaryOp>),
-    Alloca(Box<Alloca>),
-    Load(Box<Load>),
-    Store(Box<Store>),
+    Assign(Box<Assign>),
 }
 
 pub enum TypeKind {
     Int,
     String,
-    Char,
     Bool,
+    Float,
     Ptr(Box<TypeKind>),
 }
 
+impl TypeKind {
+    pub fn from_string(s: &String) -> Self {
+        use std::convert::AsRef;
+        match s.as_ref() {
+            "int" => TypeKind::Int,
+            "string" => TypeKind::String,
+            "bool" => TypeKind::Bool,
+            "float" => TypeKind::Bool,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Display for TypeKind {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        match &self {
+            TypeKind::Int => write!(f, "int"),
+            TypeKind::String => write!(f, "string"),
+            TypeKind::Bool => write!(f, "bool"),
+            TypeKind::Float => write!(f, "float"),
+            TypeKind::Ptr(ref typ) => write!(f, "{}*", typ.to_string()),
+        }
+    }
+}
+
 pub struct Reg {
-    pub id: NodeId,
+    pub id: String,
     pub typ: TypeKind,
 }
 
+
 pub struct Call {
     pub ident: String,
-    pub args: Vec<Reg>,
-    pub res: Option<Reg>,
+    //TODO: s/String/Reg (+ implement map<String/Reg> or smth like that)
+    pub args: Vec<String>,
+    //TODO: s/String/Option(Reg)
+    pub res: String,
 }
 
 pub struct BinaryOp {
@@ -40,22 +66,12 @@ pub struct BinaryOp {
     pub res: Reg,
 }
 
-pub struct Alloca {
-    pub typ: TypeKind,
-    pub res: Reg,
-}
-
-pub struct Load {
-    pub reg: Reg,
-    pub res: Reg,
-}
-
 pub enum Value {
     Reg(Reg),
     Literal(String),
 }
 
-pub struct Store {
-    pub from: Value,
-    pub to: Reg,
+pub struct Assign {
+    pub lhs: Reg,
+    pub rhs: Value,
 }

@@ -21,6 +21,7 @@ pub trait Visitor<'ast>: Sized {
     fn visit_stmt(&mut self, s: &'ast Stmt) { walk_stmt(self, s) }
     fn visit_expr(&mut self, e: &'ast Expr) { walk_expr(self, e) }
     fn visit_block(&mut self, b: &'ast Block) { walk_block(self, b) }
+    fn visit_arg(&mut self, _: &'ast Arg) {}
 }
 
 pub fn walk_mod<'a, V: Visitor<'a>>(visitor: &mut V, module: &'a Module) {
@@ -36,8 +37,8 @@ pub fn walk_item<'a, V: Visitor<'a>>(visitor: &mut V, item: &'a Item) {
     }
 }
 
-pub fn walk_fn_decl<'a, V: Visitor<'a>>(_visitor: &mut V, _decl: &'a FnDecl) {
-    // TODO: implement args walking
+pub fn walk_fn_decl<'a, V: Visitor<'a>>(visitor: &mut V, decl: &'a FnDecl) {
+    walk_list!(visitor, visit_arg, &decl.inputs)
 }
 
 
