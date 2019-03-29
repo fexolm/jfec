@@ -1,4 +1,5 @@
 extern crate itertools;
+
 use itertools::Itertools;
 
 use super::emmiter::*;
@@ -36,7 +37,7 @@ pub fn print_inst(inst: &Instruction) {
                 print!("call");
             }
             print!(" @{} ({})", call.ident,
-                     call.args.iter().map(|p| format!("{} ${}", p.typ, p.id)).format(", "));
+                   call.args.iter().map(|p| format!("{} ${}", p.typ, p.id)).format(", "));
             println!();
         },
         InstructionKind::Add(..) => {},

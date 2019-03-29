@@ -1,7 +1,8 @@
-use super::instruction::*;
 use crate::parser::ast;
-use super::visitor::SSAVisitor;
 use crate::parser::ast::visitor::*;
+
+use super::instruction::*;
+use super::visitor::SSAVisitor;
 
 pub struct Module {
     pub functions: Vec<Function>,
