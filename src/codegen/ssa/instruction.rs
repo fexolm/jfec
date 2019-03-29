@@ -13,12 +13,12 @@ pub enum InstructionKind {
     Assign(Box<Assign>),
 }
 
+#[derive(Copy, Clone)]
 pub enum TypeKind {
     Int,
     String,
     Bool,
     Float,
-    Ptr(Box<TypeKind>),
 }
 
 impl TypeKind {
@@ -28,7 +28,7 @@ impl TypeKind {
             "int" => TypeKind::Int,
             "string" => TypeKind::String,
             "bool" => TypeKind::Bool,
-            "float" => TypeKind::Bool,
+            "float" => TypeKind::Float,
             _ => unreachable!(),
         }
     }
@@ -37,11 +37,10 @@ impl TypeKind {
 impl Display for TypeKind {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match &self {
-            TypeKind::Int => write!(f, "int"),
+            TypeKind::Int => write!(f, "i64"),
             TypeKind::String => write!(f, "string"),
             TypeKind::Bool => write!(f, "bool"),
-            TypeKind::Float => write!(f, "float"),
-            TypeKind::Ptr(ref typ) => write!(f, "{}*", typ.to_string()),
+            TypeKind::Float => write!(f, "f64"),
         }
     }
 }
@@ -54,10 +53,8 @@ pub struct Reg {
 
 pub struct Call {
     pub ident: String,
-    //TODO: s/String/Reg (+ implement map<String/Reg> or smth like that)
-    pub args: Vec<String>,
-    //TODO: s/String/Option(Reg)
-    pub res: String,
+    pub args: Vec<Reg>,
+    pub res: Option<Reg>,
 }
 
 pub struct BinaryOp {

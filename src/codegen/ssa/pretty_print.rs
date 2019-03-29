@@ -29,8 +29,15 @@ pub fn print_fn(f: &Function) {
 pub fn print_inst(inst: &Instruction) {
     match inst.kind {
         InstructionKind::Call(ref call) => {
-            println!("    ${} := call @{} ({})", call.res, call.ident,
-                     call.args.iter().map(|p| format!("${}", p)).format(", "));
+            print!("    ");
+            if let Some(ref res) = call.res {
+                print!("${} := call {}", res.id, res.typ);
+            } else {
+                print!("call");
+            }
+            print!(" @{} ({})", call.ident,
+                     call.args.iter().map(|p| format!("{} ${}", p.typ, p.id)).format(", "));
+            println!();
         },
         InstructionKind::Add(..) => {},
         InstructionKind::Sub(..) => {},
@@ -45,5 +52,4 @@ pub fn print_inst(inst: &Instruction) {
             println!("    ${} := ${}", lhs, rhs);
         },
     }
-
 }

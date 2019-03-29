@@ -1,6 +1,9 @@
 use ast::visitor::*;
-use super::emmiter;
+use std::collections::HashMap;
+
 use crate::parser::ast;
+
+use super::emmiter;
 use super::instruction::*;
 
 struct VisitorState {
@@ -44,6 +47,7 @@ impl VisitorState {
         let mut f = emmiter::Function::new();
         f.name = name;
         self.m.functions.push(f);
+        self.last_tmp = 0;
     }
 
     fn push_ret_type(&mut self, typ: Option<TypeKind>) {
@@ -59,6 +63,22 @@ impl VisitorState {
     fn push_instruction(&mut self, inst: Instruction) {
         let len = self.m.functions.len();
         self.m.functions[len - 1].body.push(inst);
+    }
+
+    fn get_fn(&self, name: &String) -> &emmiter::Function {
+        if let Some(ref f) = self.m.functions.iter().find(|f| &f.name == name) {
+            f
+        } else {
+            unreachable!()
+        }
+    }
+
+    fn current_function(&self) -> &emmiter::Function {
+        if let Some(ref f) = self.m.functions.last() {
+            f
+        } else {
+            unreachable!()
+        }
     }
 }
 
@@ -164,12 +184,20 @@ impl<'ast> Visitor<'ast> for SSAVisitor {
                 for expr in &call.params {
                     self.visit_expr(expr);
                 }
-                let params = self.state.last_n(call.params.len());
+                let params = self.state.last_n(call.params.len())
+                    .iter().zip(self.state.get_fn(&call.ident).params
+                    .iter().map(|p| p.typ))
+                    .map(|(a, b)| Reg { id: a.to_string(), typ: b }).collect();
+
                 let inst = Instruction {
                     kind: InstructionKind::Call(Box::new(Call {
                         ident: call.ident.to_string(),
                         args: params,
-                        res: self.state.new_tmp(),
+                        res: if let Some(typ) = self.state.get_fn(&call.ident).ret {
+                            Some(Reg { id: self.state.new_tmp(), typ })
+                        } else {
+                            None
+                        },
                     }))
                 };
                 self.state.push_instruction(inst);
