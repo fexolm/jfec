@@ -62,6 +62,20 @@ fn parse_call_expr(call_expr_p: Pair<Rule>) -> Result<Box<ast::Call>, io::Error>
     Ok(Box::new(ast::Call { ident, params }))
 }
 
+fn parse_literal(literal_p: Pair<Rule>) -> Result<Box<ast::Literal>, io::Error> {
+    let lit = utils::inner_next(literal_p)?;
+    let s = lit.as_str();
+    Ok(Box::new(ast::Literal {
+        kind: match lit.as_rule(){
+        Rule::i64 => ast::LiteralKind::I32(s[..s.len()-3].parse::<i32>().unwrap()),
+        Rule::i32 => ast::LiteralKind::I64(s[..s.len()-3].parse::<i64>().unwrap()),
+        Rule::f64 => ast::LiteralKind::F64(s[..s.len()-3].parse::<f64>().unwrap()),
+        Rule::f32 => ast::LiteralKind::F32(s[..s.len()-3].parse::<f32>().unwrap()),
+        Rule::bool => ast::LiteralKind::Bool(s.parse::<bool>().unwrap()),
+        _ => unreachable!(),
+    }}))
+}
+
 fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
     let expr = utils::inner_next(expr_p)?;
     match expr.as_rule() {
@@ -78,6 +92,15 @@ fn parse_expr(expr_p: Pair<Rule>) -> Result<Box<ast::Expr>, io::Error> {
                         parse_call_expr(expr)?
                     )
                 }))
+        },
+        Rule::literal => {
+            return Ok(Box::new(
+                ast::Expr {
+                    kind: ast::ExprKind::Literal(
+                        parse_literal(expr)?
+                    )
+                }
+            ))
         },
         _ => unreachable!(),
     }

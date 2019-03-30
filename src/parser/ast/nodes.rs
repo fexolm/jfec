@@ -73,9 +73,10 @@ pub struct Literal {
 impl Display for Literal {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match &self.kind {
-            LiteralKind::Str(ref val) => write!(f, "\"{}\"", val),
-            LiteralKind::Int(val) => write!(f, "{}", val),
-            LiteralKind::Float(val) => write!(f, "{}", val),
+            LiteralKind::I32(val) => write!(f, "{}", val),
+            LiteralKind::I64(val) => write!(f, "{}", val),
+            LiteralKind::F32(val) => write!(f, "{}", val),
+            LiteralKind::F64(val) => write!(f, "{}", val),
             LiteralKind::Bool(val) => write!(f, "{}", val),
         }
     }
@@ -83,9 +84,10 @@ impl Display for Literal {
 
 #[derive(Debug)]
 pub enum LiteralKind {
-    Str(String),
-    Int(u64),
-    Float(f64),
+    I32(i32),
+    I64(i64),
+    F32(f32),
+    F64(f64),
     Bool(bool),
 }
 

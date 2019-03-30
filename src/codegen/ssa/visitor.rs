@@ -1,5 +1,4 @@
 use ast::visitor::*;
-use std::collections::HashMap;
 
 use crate::parser::ast;
 
@@ -72,14 +71,6 @@ impl VisitorState {
             unreachable!()
         }
     }
-
-    fn current_function(&self) -> &emmiter::Function {
-        if let Some(ref f) = self.m.functions.last() {
-            f
-        } else {
-            unreachable!()
-        }
-    }
 }
 
 pub struct SSAVisitor {
@@ -100,9 +91,10 @@ impl SSAVisitor {
 
 fn literal_type(lit: &ast::Literal) -> TypeKind {
     match &lit.kind {
-        ast::LiteralKind::Str(_) => TypeKind::String,
-        ast::LiteralKind::Int(_) => TypeKind::Int,
-        ast::LiteralKind::Float(_) => TypeKind::Float,
+        ast::LiteralKind::I32(_) => TypeKind::I32,
+        ast::LiteralKind::I64(_) => TypeKind::I64,
+        ast::LiteralKind::F32(_) => TypeKind::F32,
+        ast::LiteralKind::F64(_) => TypeKind::F64,
         ast::LiteralKind::Bool(_) => TypeKind::Bool,
     }
 }

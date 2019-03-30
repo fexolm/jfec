@@ -22,10 +22,18 @@ assign_stmt = { "let" ~ ident ~ ":" ~ ident ~ "=" ~ expr ~ ";"}
 
 expr_stmt = { expr ~ ";" }
 
-expr = { call_expr | ident }
+expr = { call_expr | ident | literal}
 
 call_params = { expr ~ ("," ~ expr)* }
 
 call_expr = { ident ~ "(" ~ call_params? ~")" }
 
-ident = @{ ASCII_ALPHA+ }
+i64 = @{ ASCII_DIGIT+ ~ "i64" }
+i32 = @{ ASCII_DIGIT+ ~ "i32" }
+f64 = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ "f64" }
+f32 = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? ~ "f32" }
+bool = @{"true" ~ "false"}
+
+literal = {i64 | i32 | f64 | f32 | bool }
+
+ident = @{ ASCII_ALPHA ~ (ASCII_DIGIT | ASCII_ALPHA)*}

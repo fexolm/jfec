@@ -15,20 +15,22 @@ pub enum InstructionKind {
 
 #[derive(Copy, Clone)]
 pub enum TypeKind {
-    Int,
-    String,
+    I32,
+    I64,
+    F32,
+    F64,
     Bool,
-    Float,
 }
 
 impl TypeKind {
     pub fn from_string(s: &String) -> Self {
         use std::convert::AsRef;
         match s.as_ref() {
-            "int" => TypeKind::Int,
-            "string" => TypeKind::String,
+            "i32" => TypeKind::I32,
+            "i64" => TypeKind::I64,
+            "f32" => TypeKind::F32,
+            "f64" => TypeKind::F64,
             "bool" => TypeKind::Bool,
-            "float" => TypeKind::Float,
             _ => unreachable!(),
         }
     }
@@ -37,10 +39,11 @@ impl TypeKind {
 impl Display for TypeKind {
     fn fmt(&self, f: &mut Formatter) -> Result {
         match &self {
-            TypeKind::Int => write!(f, "i64"),
-            TypeKind::String => write!(f, "string"),
+            TypeKind::I32 => write!(f, "i32"),
+            TypeKind::I64 => write!(f, "i64"),
+            TypeKind::F32 => write!(f, "f32"),
+            TypeKind::F64 => write!(f, "f64"),
             TypeKind::Bool => write!(f, "bool"),
-            TypeKind::Float => write!(f, "f64"),
         }
     }
 }

@@ -1,11 +1,12 @@
-fn g(a: float, b: int) -> int {
+fn g(a: f32, b: i32) -> i32 {
 
 }
 
-fn f(a: int, b:float) -> float {
+fn f(a: i32, b: f32) -> f32 {
     g(a, b);
 }
 
-fn foo ( a: int, b: float, c: int ) {
-    let d: int = g(f(a, b), c);
+fn foo ( a: i32, b: f32) {
+    let k: i32 = 5i32;
+    let d: i32 = g(f(a, b), k);
 }
