@@ -1,7 +1,12 @@
-fn kek ( a: int, b: int, c: int ) -> int {
-    let a: int = f(f(x, y), z);
+fn g(a: f32, b: i32) -> i32 {
+
 }
 
-fn lol ( a: float) { }
+fn f(a: i32, b: f32) -> f32 {
+    g(a, b);
+}
 
-fn hehehe ( ) -> double { }
+fn foo ( a: i32, b: f32) {
+    let k: i32 = 5i32;
+    let d: i32 = g(f(a, b), k);
+}
