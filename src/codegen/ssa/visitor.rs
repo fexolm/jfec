@@ -1,9 +1,9 @@
-use ast::visitor::*;
-
 use crate::parser::ast;
 
 use super::emmiter;
 use super::instruction::*;
+
+use self::ast::visitor::*;
 
 struct VisitorState {
     last_tmp: i32,

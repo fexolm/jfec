@@ -1,4 +1,4 @@
-pub use stmt_extensions::*;
+pub use self::stmt_extensions::*;
 
 use super::super::ast;
 
